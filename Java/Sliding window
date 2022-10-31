@@ -1,0 +1,79 @@
+import java.util.Scanner;
+ 
+public class slidingWindowMax {
+ 
+    static int[] sarr;
+ 
+    public static void main(String[] args) {
+ 
+        Scanner scn = new Scanner(System.in);
+        int[] arr = new int[scn.nextInt()];
+ 
+        for (int i = 0; i < arr.length; i++) {
+            arr[i] = scn.nextInt();
+        }
+ 
+        int windowSize = scn.nextInt();
+ 
+        int height = (int)Math.ceil((Math.log(arr.length) / Math.log(2)));
+ 
+        /* size of segment array  i.e. the number of nodes will be = [(2^height+1)-1] */
+ 
+        sarr = new int[1<<height -1];
+ 
+        construct(0, 0, arr.length-1, arr);
+ 
+        solve(arr, windowSize);
+ 
+    }
+    
+    public static void solve(int[] arr, int k) {
+        for (int i = 0; i <= arr.length - k; i++) {
+            /* finding the result for range query from i to i+k which is basically a subarray.
+             *
+             */
+            System.out.println(query(0, i, i + k - 1, 0, arr.length - 1));
+        }
+    }
+ 
+    public static int construct(int idx, int start, int end, int[] arr) {
+        /* leaf nodes contains the array elements */
+        if (start == end) {
+            sarr[idx] = arr[end];
+            return sarr[idx];
+        }
+ 
+        int mid = (start + end) / 2;
+        /* dividing the range for every node in segment tree into two halves */
+        int left = construct(2 * idx + 1, start, mid, arr);
+        int right = construct(2 * idx + 2, mid + 1, end, arr);
+        /* result for current index in segment tree will be calculated
+         *  in post order, and will be maximum of its two childs.
+         */
+        sarr[idx] = Math.max(left, right);
+        return sarr[idx];
+    }
+ 
+    public static int query(int idx, int queryStart, int QueryEnd, int start, int end) {
+        /* if our range is completely outside the query,
+         * we need to return a result such that it causes no effect in our final answer.
+         */
+ 
+        if (start > QueryEnd || end < queryStart) {
+            return Integer.MIN_VALUE;
+        }
+        /* if the range of the current segment falls completely
+         *  inside the query then return its value.
+         */
+        else if (start >= queryStart && end <= QueryEnd) {
+            return sarr[idx];
+        } else {
+ 
+            int mid = (start + end) / 2;
+            int left = query(2 * idx + 1, queryStart, QueryEnd, start, mid);
+            int right = query(2 * idx + 2, queryStart, QueryEnd, mid + 1, end);
+ 
+            return Math.max(left, right);
+        }
+    }
+}
